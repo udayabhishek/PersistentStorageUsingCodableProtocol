@@ -16,7 +16,7 @@ class TodoListViewController: UITableViewController {
         // Do any additional setup after loading the view.
     }
     
-    //MARK: - TableView DataSource Method
+    //MARK: - TableView DataSource Methods
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return itemArray.count
     }
@@ -26,6 +26,15 @@ class TodoListViewController: UITableViewController {
         cell.textLabel?.text = itemArray[indexPath.row]
         
         return cell
+    }
+    
+    //MARK: - TableView Delegate Methods
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print(itemArray[indexPath.row])
+        
+        //this will remove selected table row color
+        tableView.deselectRow(at: indexPath, animated: true)
     }
 }
 
