@@ -3,14 +3,16 @@
 
 
 import UIKit
+import SQLite3
 
 class TodoListViewController: UITableViewController {
     var itemArray = [Item]()
-    
-    let userDefault = UserDefaults.standard
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        print(dataFilePath)
         
         let newItem = Item()
         newItem.title = "Find Mike"
@@ -27,32 +29,8 @@ class TodoListViewController: UITableViewController {
         let newItem3 = Item()
         newItem3.title = "Laundry"
         itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-        itemArray.append(newItem3)
-
-
         
-//        if let itemArray = userDefault.array(forKey: "itemArray") as? [String] {
-//            self.itemArray = itemArray
-//        }
+        loadItems()
     }
     
     //MARK: - TableView DataSource Methods
@@ -66,12 +44,6 @@ class TodoListViewController: UITableViewController {
         let item = itemArray[indexPath.row]
         cell.textLabel?.text = item.title
         
-//        if item.check == true {
-//            cell.accessoryType = .checkmark
-//        } else {
-//            cell.accessoryType = .none
-//        }
-        
         cell.accessoryType = item.check ? .checkmark : .none
         return cell
     }
@@ -81,15 +53,9 @@ class TodoListViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print(itemArray[indexPath.row])
         //Toggle check mark
-//        if itemArray[indexPath.row].check == true {
-//            itemArray[indexPath.row].check = false
-//        } else {
-//            itemArray[indexPath.row].check = true
-//        }
-//
         itemArray[indexPath.row].check = !itemArray[indexPath.row].check
-        tableView.reloadData()
-
+        self.saveItems()
+        
         //this will remove selected table row color
         tableView.deselectRow(at: indexPath, animated: true)
     }
@@ -101,14 +67,10 @@ class TodoListViewController: UITableViewController {
         let alert = UIAlertController(title: "Add New Item", message: "", preferredStyle: .alert)
         
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
-            
             let newItem = Item()
             newItem.title = textField.text!
-            
             self.itemArray.append(newItem)
-//            self.itemArray.append(textField.text!)
-            self.userDefault.set(self.itemArray, forKey: "itemArray")
-            self.tableView.reloadData()
+            self.saveItems()
         }
         
         alert.addTextField { (alertTextField) in
@@ -118,6 +80,28 @@ class TodoListViewController: UITableViewController {
         
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
+    }
+    
+    func saveItems() {
+        let encoder = PropertyListEncoder()
+        do {
+            let data = try encoder.encode(self.itemArray)
+            try data.write(to: self.dataFilePath!)
+        } catch {
+            print("Error in encoding item array")
+        }
+        self.tableView.reloadData()
+    }
+    
+    func loadItems() {
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            do {
+                itemArray = try decoder.decode([Item].self, from: data)
+            } catch {
+                print("Failed to load data")
+            }
+        }
     }
 }
 
